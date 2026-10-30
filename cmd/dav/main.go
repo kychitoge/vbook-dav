@@ -101,7 +101,7 @@ func main() {
 
 		handler.SetSyncHooks(
 			func(relPath string) {
-				cleanRel := strings.TrimLeft(filepath.ToSlash(relPath), "/")
+				cleanRel := r2sync.NormalizeKey(relPath)
 				localPath := filepath.Join(cfg.DataDir, filepath.FromSlash(cleanRel))
 				syncer.Enqueue(r2sync.Job{
 					Action:    r2sync.ActionUpload,
@@ -110,7 +110,7 @@ func main() {
 				})
 			},
 			func(relPath string) {
-				cleanRel := strings.TrimLeft(filepath.ToSlash(relPath), "/")
+				cleanRel := r2sync.NormalizeKey(relPath)
 				syncer.Enqueue(r2sync.Job{
 					Action: r2sync.ActionDelete,
 					R2Key:  cleanRel,

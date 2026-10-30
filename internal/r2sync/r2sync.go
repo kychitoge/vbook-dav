@@ -92,6 +92,13 @@ func isIgnoredSyncFile(name string, r2Key string) bool {
 	return false
 }
 
+// NormalizeKey converts any path format into a clean S3/R2 POSIX key.
+// Explicitly replaces backslashes with slashes (regardless of host OS) and strips leading slashes.
+func NormalizeKey(key string) string {
+	normalized := strings.ReplaceAll(key, "\\", "/")
+	return strings.TrimLeft(normalized, "/")
+}
+
 // Enqueue adds a job non-blockingly (used by WebDAV HTTP handlers).
 // Returns true if enqueued; returns false and triggers onDone if queue is full.
 func (s *Syncer) Enqueue(j Job) bool {
@@ -99,7 +106,7 @@ func (s *Syncer) Enqueue(j Job) bool {
 		return false
 	}
 	// Defensively normalize R2 key
-	j.R2Key = strings.TrimLeft(filepath.ToSlash(j.R2Key), "/")
+	j.R2Key = NormalizeKey(j.R2Key)
 	if isIgnoredSyncFile(filepath.Base(j.R2Key), j.R2Key) {
 		return false
 	}
@@ -121,7 +128,7 @@ func (s *Syncer) enqueueBlocking(ctx context.Context, j Job) error {
 	if s == nil {
 		return nil
 	}
-	j.R2Key = strings.TrimLeft(filepath.ToSlash(j.R2Key), "/")
+	j.R2Key = NormalizeKey(j.R2Key)
 
 	select {
 	case <-ctx.Done():
@@ -266,7 +273,7 @@ func (s *Syncer) startupScan(ctx context.Context) {
 		if err != nil {
 			return nil
 		}
-		r2Key := strings.TrimLeft(filepath.ToSlash(rel), "/")
+		r2Key := NormalizeKey(rel)
 		if isIgnoredSyncFile(filepath.Base(r2Key), r2Key) {
 			return nil
 		}
