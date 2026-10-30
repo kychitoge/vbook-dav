@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and Publish Popular OS Binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Compile and Package Popular OS Binaries
+        run: |
+          mkdir -p dist
+          TAG="${GITHUB_REF_NAME}"
+          LDFLAGS="-s -w -extldflags '-static'"
+
+          # 1. Linux x86_64 (VPS, Ubuntu, Debian, Home Server)
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="$LDFLAGS" -trimpath -o dist/vbook-dav ./cmd/dav
+          tar -czvf "dist/vbook-dav_${TAG}_linux_amd64.tar.gz" -C dist vbook-dav -C "$GITHUB_WORKSPACE" README.md LICENSE .env.example
+          rm dist/vbook-dav
+
+          # 2. Linux ARM64 (Raspberry Pi 4/5, Oracle Cloud ARM)
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="$LDFLAGS" -trimpath -o dist/vbook-dav ./cmd/dav
+          tar -czvf "dist/vbook-dav_${TAG}_linux_arm64.tar.gz" -C dist vbook-dav -C "$GITHUB_WORKSPACE" README.md LICENSE .env.example
+          rm dist/vbook-dav
+
+          # 3. Windows x64 (Desktop PC, Laptop)
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="$LDFLAGS" -trimpath -o dist/vbook-dav.exe ./cmd/dav
+          zip -j "dist/vbook-dav_${TAG}_windows_amd64.zip" dist/vbook-dav.exe README.md LICENSE .env.example
+          rm dist/vbook-dav.exe
+
+          # 4. macOS Apple Silicon (Mac M1/M2/M3/M4)
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags="$LDFLAGS" -trimpath -o dist/vbook-dav ./cmd/dav
+          tar -czvf "dist/vbook-dav_${TAG}_darwin_arm64.tar.gz" -C dist vbook-dav -C "$GITHUB_WORKSPACE" README.md LICENSE .env.example
+          rm dist/vbook-dav
+
+          # Checksums
+          cd dist
+          sha256sum *.tar.gz *.zip > checksums.txt
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/checksums.txt
+          generate_release_notes: true

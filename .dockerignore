@@ -1,0 +1,34 @@
+# Git metadata
+.git/
+.gitignore
+
+# Environment secrets and host data
+.env*
+!.env.example
+data/
+
+# Documentation and agent metadata
+docs/
+.agents/
+*.md
+LICENSE
+
+# Local build artifacts
+*.exe
+*.tmp
+bin/
+dist/
+
+# Test coverage
+*.out
+cover.html
+
+# Editor and OS artifacts
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Docker Compose overrides
+docker-compose*.override.yml

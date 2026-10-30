@@ -1,0 +1,33 @@
+# Environment configuration
+.env
+
+# Application runtime data & backups
+data/*
+!data/.gitkeep
+*.tmp
+
+# Compiled binaries and build outputs
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+vbook-dav
+
+# Go test coverage
+*.out
+cover.html
+
+# IDE and OS metadata
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Internal agent logs
+.agents/teamwork/
